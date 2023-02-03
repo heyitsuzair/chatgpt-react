@@ -1,34 +1,47 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import './App.css'
+import { useState } from "react";
+import "./App.css";
+import { OpenAIApi } from "openai";
+import { configuration } from "./config/openai";
+import Spinner from "./Spinner";
 
 function App() {
-  const [count, setCount] = useState(0)
+  const openai = new OpenAIApi(configuration);
+  const [prompt, setPrompt] = useState("");
+  const [image, setImage] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+
+  const generateImage = async () => {
+    setIsLoading(true);
+    setImage("");
+    const { data } = await openai.createImage({
+      prompt: prompt,
+      n: 1,
+      size: "1024x1024",
+    });
+    setImage(data.data[0].url);
+    setIsLoading(false);
+  };
 
   return (
-    <div className="App">
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src="/vite.svg" className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://reactjs.org" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </div>
-  )
+    <>
+      {isLoading ? (
+        <Spinner />
+      ) : (
+        <div className="App">
+          <h1>Generate An Image Using Open AI API</h1>
+          <input
+            type="text"
+            className="app-input"
+            placeholder="Type Something To Generate An Image"
+            value={prompt}
+            onChange={(e) => setPrompt(e.target.value)}
+          />
+          <button onClick={() => generateImage()}>Generate An Image</button>
+          {image && <img src={image} alt="Loading..." />}
+        </div>
+      )}
+    </>
+  );
 }
 
-export default App
+export default App;
